@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -13,6 +13,7 @@ interface CatModalProps {
 const CatModal: React.FC<CatModalProps> = ({ catImage, onClose }) => {
   const router = useRouter();
   const { id: imageId, url: imageUrl, breeds } = catImage || {};
+  const [copySuccess, setCopySuccess] = useState(false);
 
   useEffect(() => {
     document.body.style.overflow = 'hidden';
@@ -24,9 +25,45 @@ const CatModal: React.FC<CatModalProps> = ({ catImage, onClose }) => {
     };
   }, [imageId, router]);
 
-  const handleCopyLink = () => {
+  const handleCopyLink = async () => {
     const url = `${window.location.origin}${window.location.pathname}?imageId=${imageId}`;
-    navigator.clipboard.writeText(url);
+
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        // For HTTPS or localhost
+        await navigator.clipboard.writeText(url);
+        setCopySuccess(true);
+      } else {
+        // Fallback for HTTP
+        const textArea = document.createElement('textarea');
+        textArea.value = url;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        textArea.style.top = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+
+        try {
+          document.execCommand('copy');
+          textArea.remove();
+          setCopySuccess(true);
+        } catch (err) {
+          console.error('Failed to copy link:', err);
+          textArea.remove();
+          throw new Error('Failed to copy');
+        }
+      }
+    } catch (err) {
+      console.error('Failed to copy link:', err);
+      // If all else fails, prompt user to copy manually
+      alert('Unable to copy automatically. Link: ' + url);
+    }
+
+    // Reset success message after 2 seconds
+    setTimeout(() => {
+      setCopySuccess(false);
+    }, 2000);
   };
 
   if (!imageId) return null;
@@ -76,7 +113,7 @@ const CatModal: React.FC<CatModalProps> = ({ catImage, onClose }) => {
               onClick={handleCopyLink}
               className="cursor-pointer bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
             >
-              Copy Share Link
+              {copySuccess ? 'Link Copied!' : 'Copy Share Link'}
             </button>
           </div>
         </div>
