@@ -4,7 +4,8 @@ import Image from 'next/image';
 import useFavorites from '@/hooks/useFavorites';
 
 export default function FavoriteGrid() {
-  const { favorites, loading, error, toggleFavorite } = useFavorites();
+  const { favorites, loading, error, toggleFavorite, removeFavorite } =
+    useFavorites();
 
   if (loading) {
     return <div className="text-center p-4">Loading favorites...</div>;
@@ -42,14 +43,14 @@ export default function FavoriteGrid() {
               />
               <button
                 onClick={(e) => {
-                  toggleFavorite(image.id);
+                  removeFavorite(image.id);
                 }}
-                className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
                 aria-label="Remove from favorites"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5 cursor-pointer"
+                  className="h-5 w-5"
                   viewBox="0 0 20 20"
                   fill="currentColor"
                 >
